@@ -42,7 +42,10 @@ import { MuiButton,
          MuiResponsiveness,
          MuiBoxThemeCustom,
          MuiTransferList,
-         TransferList} from './Components';
+         TransferList,
+         MuiSlider,
+         MuiStepper,
+         DragDropViewTree} from './Components';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { createTheme, colors, ThemeProvider } from '@mui/material';
@@ -112,7 +115,10 @@ function App() {
           {/* <MuiResponsiveness /> */}
           {/* <MuiBoxThemeCustom/> */}
           {/* <MuiTransferList/> */}
-          <TransferList/>
+          {/* <TransferList/> */}
+          {/* <MuiSlider/> */}
+          {/* <MuiStepper /> */}
+          <DragDropViewTree />
         </div>
       </LocalizationProvider>
     </ThemeProvider>
