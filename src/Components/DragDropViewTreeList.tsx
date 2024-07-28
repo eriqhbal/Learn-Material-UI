@@ -36,7 +36,14 @@ const DragDropViewTreeList = () => {
           itemId: "pickers-pro",
           label: "@mui/x-date-pickers-pro",
           children: [
-            { itemId: "pickers-cihuyy", label: "@mui/x-date-pickers" },
+            {
+              itemId: "pickers-cihuyy",
+              label: "@mui/x-date-pickers",
+              children: [
+                { itemId: "starmen", label: "starmen" },
+                { itemId: "starboy", label: "starboy" },
+              ],
+            },
           ],
         },
       ],
