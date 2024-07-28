@@ -2,6 +2,12 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
 
 interface TreeNode {
   itemId: string;
@@ -50,6 +56,18 @@ const DragDropViewTreeList = () => {
   // Track the currently dragged item
   const [draggedItem, setDraggedItem] = React.useState<TreeNode | null>(null);
 
+  // State to control the dialog visibility
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+
+  // State to keep track of the drop action details
+  const [dropInfo, setDropInfo] = React.useState<{
+    draggedItem: TreeNode | null;
+    targetItem: TreeNode | null;
+  }>({
+    draggedItem: null,
+    targetItem: null,
+  });
+
   // Function to handle drag start
   const handleDragStart = (
     event: React.DragEvent<HTMLLIElement>,
@@ -91,6 +109,10 @@ const DragDropViewTreeList = () => {
     );
     setTreeData(updatedTreeData);
     setDraggedItem(null);
+
+    // Update drop information and open dialog
+    setDropInfo({ draggedItem, targetItem });
+    setDialogOpen(true);
   };
 
   // Check if the target item is a descendant of the dragged item
@@ -161,13 +183,14 @@ const DragDropViewTreeList = () => {
     return [[], -1];
   };
 
-  return (
-    <Box sx={{ minHeight: 352, minWidth: 250 }}>
-      <SimpleTreeView>
-        {treeData.map((item) => renderTreeItem(item))}
-      </SimpleTreeView>
-    </Box>
-  );
+  const handleClick = (item: TreeNode) => {
+    console.log(item, "eriqh item");
+  };
+
+  // Handle closing the dialog
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
 
   // Render TreeItem with recursive function
   function renderTreeItem(item: TreeNode) {
@@ -179,12 +202,38 @@ const DragDropViewTreeList = () => {
         onDragStart={(e) => handleDragStart(e, item)}
         onDragOver={handleDragOver}
         onDrop={(e) => handleDrop(e, item)}
+        onClick={() => handleClick(item)}
         draggable
       >
         {item.children && item.children.map(renderTreeItem)}
       </TreeItem>
     );
   }
+
+  return (
+    <Box sx={{ minHeight: 352, minWidth: 250 }}>
+      <SimpleTreeView>
+        {treeData.map((item) => renderTreeItem(item))}
+      </SimpleTreeView>
+
+      {/* Dialog to show after drop */}
+      <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Item Dropped</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You have moved the item{" "}
+            <strong>{dropInfo.draggedItem?.label}</strong> to{" "}
+            <strong>{dropInfo.targetItem?.label}</strong>.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
 };
 
 export default DragDropViewTreeList;
