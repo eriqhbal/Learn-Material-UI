@@ -16,7 +16,6 @@ interface TreeNode {
 }
 
 const DragDropViewTreeList = () => {
-  // Initial tree data
   const [treeData, setTreeData] = React.useState<TreeNode[]>([
     {
       itemId: "grid",
@@ -60,13 +59,8 @@ const DragDropViewTreeList = () => {
     },
   ]);
 
-  // Track the currently dragged item
   const [draggedItem, setDraggedItem] = React.useState<TreeNode | null>(null);
-
-  // State to control the dialog visibility
   const [dialogOpen, setDialogOpen] = React.useState(false);
-
-  // State to keep track of the drop action details
   const [dropInfo, setDropInfo] = React.useState<{
     draggedItem: TreeNode | null;
     targetItem: TreeNode | null;
@@ -75,7 +69,6 @@ const DragDropViewTreeList = () => {
     targetItem: null,
   });
 
-  // Function to handle drag start
   const handleDragStart = (
     event: React.DragEvent<HTMLLIElement>,
     item: TreeNode
@@ -86,43 +79,42 @@ const DragDropViewTreeList = () => {
     event.dataTransfer.setData("application/json", JSON.stringify(item));
   };
 
-  // Function to handle drag over
-  const handleDragOver = (event: React.DragEvent<HTMLLIElement>) => {
+  const handleDragOver = (event: React.DragEvent<HTMLElement>) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
   };
 
-  // Function to handle drop
   const handleDrop = (
-    event: React.DragEvent<HTMLLIElement>,
-    targetItem: TreeNode
+    event: React.DragEvent<HTMLElement>,
+    targetItem: TreeNode | null
   ) => {
     event.stopPropagation();
     event.preventDefault();
 
-    if (!draggedItem || draggedItem.itemId === targetItem.itemId) {
+    if (!draggedItem) {
       return;
     }
 
-    // Prevent dropping on a descendant
-    if (isDescendant(draggedItem, targetItem.itemId)) {
+    if (targetItem && draggedItem.itemId === targetItem.itemId) {
+      return;
+    }
+
+    if (targetItem && isDescendant(draggedItem, targetItem.itemId)) {
       return;
     }
 
     const updatedTreeData = moveSubtree(
       treeData,
       draggedItem.itemId,
-      targetItem.itemId
+      targetItem ? targetItem.itemId : null
     );
     setTreeData(updatedTreeData);
     setDraggedItem(null);
 
-    // Update drop information and open dialog
     setDropInfo({ draggedItem, targetItem });
     setDialogOpen(true);
   };
 
-  // Check if the target item is a descendant of the dragged item
   const isDescendant = (parent: TreeNode, targetItemId: string): boolean => {
     if (parent.itemId === targetItemId) {
       return true;
@@ -135,43 +127,40 @@ const DragDropViewTreeList = () => {
     return false;
   };
 
-  // Utility function to move entire subtree
   const moveSubtree = (
     items: TreeNode[],
     draggedItemId: string,
-    targetItemId: string
+    targetItemId: string | null
   ): TreeNode[] => {
-    // Clone the tree data
     const clonedItems = JSON.parse(JSON.stringify(items)) as TreeNode[];
 
-    // Find the parent and index of the dragged item
     const [draggedParent, draggedIndex] = findParentAndIndex(
       clonedItems,
       draggedItemId
     );
 
-    // Find the parent and index of the target item
-    const [targetParent, targetIndex] = findParentAndIndex(
-      clonedItems,
-      targetItemId
-    );
-
-    if (draggedIndex !== -1 && targetIndex !== -1) {
-      // Remove the dragged item subtree from its original location
+    if (draggedIndex !== -1) {
       const [removedItem] = draggedParent.splice(draggedIndex, 1);
 
-      // Append the dragged item subtree to the target item's children
-      if (!targetParent[targetIndex].children) {
-        targetParent[targetIndex].children = [];
-      }
+      if (targetItemId === null) {
+        clonedItems.push(removedItem);
+      } else {
+        const [targetParent, targetIndex] = findParentAndIndex(
+          clonedItems,
+          targetItemId
+        );
 
-      targetParent[targetIndex].children!.push(removedItem);
+        if (!targetParent[targetIndex].children) {
+          targetParent[targetIndex].children = [];
+        }
+
+        targetParent[targetIndex].children!.push(removedItem);
+      }
     }
 
     return clonedItems;
   };
 
-  // Utility function to find parent and index
   const findParentAndIndex = (
     items: TreeNode[],
     itemId: string
@@ -194,12 +183,10 @@ const DragDropViewTreeList = () => {
     console.log(item, "eriqh item");
   };
 
-  // Handle closing the dialog
   const handleCloseDialog = () => {
     setDialogOpen(false);
   };
 
-  // Render TreeItem with recursive function
   function renderTreeItem(item: TreeNode) {
     return (
       <TreeItem
@@ -223,14 +210,23 @@ const DragDropViewTreeList = () => {
         {treeData.map((item) => renderTreeItem(item))}
       </SimpleTreeView>
 
-      {/* Dialog to show after drop */}
+      {/* Root level drop area */}
+      <Box
+        component="div" // Specify that Box should be rendered as a div
+        sx={{ minHeight: 50, border: "1px dashed gray", marginTop: 2 }}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, null)}
+      >
+        Drop here to move to root level
+      </Box>
+
       <Dialog open={dialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Item Dropped</DialogTitle>
         <DialogContent>
           <DialogContentText>
             You have moved the item{" "}
             <strong>{dropInfo.draggedItem?.label}</strong> to{" "}
-            <strong>{dropInfo.targetItem?.label}</strong>.
+            <strong>{dropInfo.targetItem?.label ?? "root level"}</strong>.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
