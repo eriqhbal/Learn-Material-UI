@@ -69,6 +69,12 @@ const DragDropViewTreeList = () => {
     targetItem: null,
   });
 
+  React.useEffect(() => {
+    // This effect runs only once after the component mounts
+    console.log("Tree data loaded:", treeData);
+    // Perform any other actions you need here, such as initializing data or fetching related information
+  }, [treeData]); // Empty dependency array means this effect runs only once
+
   const handleDragStart = (
     event: React.DragEvent<HTMLLIElement>,
     item: TreeNode
@@ -206,7 +212,10 @@ const DragDropViewTreeList = () => {
 
   return (
     <Box sx={{ minHeight: 352, minWidth: 250 }}>
-      <SimpleTreeView>
+      <SimpleTreeView
+        defaultExpandedItems={["pickers", "pickers-pro", "pickers-cihuyy"]}
+        defaultSelectedItems={"starmen"}
+      >
         {treeData.map((item) => renderTreeItem(item))}
       </SimpleTreeView>
 
